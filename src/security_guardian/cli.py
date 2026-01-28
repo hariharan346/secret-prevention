@@ -9,7 +9,7 @@ from .models import Severity
 
 def main():
     parser = argparse.ArgumentParser(description="Security Guardian - Enterprise Secret Scanner")
-    parser.add_argument("path", help="Path to file or directory to scan")
+    parser.add_argument("paths", nargs="+", help="Paths to file or directory to scan")
     parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
     parser.add_argument("--validate", action="store_true", help="Attempt to validate found secrets")
     parser.add_argument("--exclude", nargs="+", default=[], help="Patterns to exclude from scan")
@@ -30,7 +30,8 @@ def main():
     scanner = SecretScanner(policy, exclude_patterns=args.exclude)
     
     # Run Scan
-    scanner.scan_path(args.path)
+    for path in args.paths:
+        scanner.scan_path(path)
     
     # Determine Block/Warn
     should_block = False

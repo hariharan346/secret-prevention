@@ -12,8 +12,9 @@ class SecretScanner:
         self.results: List[ScanResult] = []
 
     def _is_excluded(self, path: str) -> bool:
+        path = os.path.normpath(path)
         for pattern in self.exclude_patterns:
-            if pattern in path: # Simple substring match for now, could be glob
+            if os.path.normpath(pattern) in path:
                 return True
         return False
 

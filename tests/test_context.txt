@@ -1,0 +1,10 @@
+# Test File for Context Awareness
+
+# 1. Medium Severity (Should stay Medium)
+test_password = "password123"
+
+# 2. Medium Severity + Context (Should upgrade to HIGH)
+prod_password = "password123"
+
+# 3. Context Keyword "live"
+live_db_pass = "secretPass!"

@@ -6,3 +6,4 @@ docs/REQUIREMENTS.md
 tests/test_secrets.txt
 tests/test_context.txt
 tests/test_entropy.txt
+tests/test_phase2.py

@@ -1,0 +1,10 @@
+# Test Entropy
+
+# 1. Low Entropy (Repeating chars) - Should PASS
+low_entropy = "aaaaaaaaaaaaaaaaaaaa"
+
+# 2. High Entropy (Random string) - Should DETECT as MEDIUM
+high_entropy = "7Fz/3x9@1qP#m$Lk"
+
+# 3. Regular sentence - Should PASS
+description = "This is a normal sentence with some words."
