@@ -1,0 +1,8 @@
+# Security Guardian Ignore File
+# These files contain intentional example secrets for documentation and testing
+
+DEMO_GUIDE.md
+docs/REQUIREMENTS.md
+tests/test_secrets.txt
+tests/test_context.txt
+tests/test_entropy.txt

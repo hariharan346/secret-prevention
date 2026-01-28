@@ -1,0 +1,2 @@
+[console_scripts]
+security-guardian = security_guardian.cli:main

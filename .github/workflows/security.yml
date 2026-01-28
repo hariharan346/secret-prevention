@@ -1,0 +1,22 @@
+name: Security Guardian Scan
+on: [push, pull_request]
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install Security Guardian
+        run: |
+          pip install . 
+          # In real enterprise: pip install security-guardian==1.0.0 --index-url https://artifactory.corp
+          
+      - name: Run Scan (Block on HIGH)
+        run: |
+          security-guardian . --format json --exclude DEMO_GUIDE.md docs/REQUIREMENTS.md
