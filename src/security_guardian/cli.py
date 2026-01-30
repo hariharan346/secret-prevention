@@ -77,7 +77,7 @@ def run_scan(args):
     
     # Initialize Components
     policy = PolicyEngine()
-    scanner = SecretScanner(policy, exclude_patterns=args.exclude)
+    scanner = SecretScanner(policy, exclude_patterns=args.exclude, scan_all_files=args.all_files)
     
     # Run Scan
     for path in args.paths:
@@ -141,6 +141,7 @@ def main():
     scan_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
     scan_parser.add_argument("--validate", action="store_true", help="Attempt to validate found secrets")
     scan_parser.add_argument("--exclude", nargs="+", default=[], help="Patterns to exclude from scan")
+    scan_parser.add_argument("--all-files", action="store_true", help="Scan ALL files (slower, but covers everything). Default: Safe Extensions only.")
     scan_parser.set_defaults(func=run_scan)
 
     # Command: install-hook

@@ -45,7 +45,24 @@ security-guardian scan src/
 security-guardian scan src/ --format json
 ```
 
-### 2. Install Pre-commit Hook (Recommended)
+### 2. Scanning Strategy 🆕
+
+**Default Mode (Safe):**
+By default, `security-guardian` scans only **known text and source code files** (e.g., `.py`, `.js`, `.json`, `.yml`, `.env`, `.txt`). This ensures:
+- 🚀 **Speed**: No wasted time on binaries or media files.
+- 🛡️ **Safety**: No crashes from trying to read compiled binaries or git objects.
+- 🎯 **Accuracy**: Fewer false positives.
+
+**All-Files Mode (Advanced):**
+For deep audits, you can force the scanner to check **everything** (except standard ignores like `.git/` or `node_modules/`).
+
+```bash
+security-guardian scan . --all-files
+```
+
+> **Note:** Even in `--all-files` mode, we safely skip true binary files to prevent crashes.
+
+### 3. Install Pre-commit Hook (Recommended)
 You can opt-in to install a local git hook that prevents you from committing secrets. This hook runs ONLY when you verify it's safe.
 
 ```bash

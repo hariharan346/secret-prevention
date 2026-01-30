@@ -6,15 +6,28 @@ from .models import ScanResult, Severity, ScanSummary
 from .policy import PolicyEngine
 
 class SecretScanner:
-    def __init__(self, policy: PolicyEngine, exclude_patterns: List[str] = None):
+    # Industry-standard safe extensions for source code scanning
+    SAFE_EXTENSIONS = {
+        # Code
+        ".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".go", ".rb", ".php", ".c", ".cpp", ".cs", ".swift", ".rs", ".kt", ".scala", ".pl", ".sh", ".bash", ".zsh", ".bat", ".cmd", ".ps1",
+        # Config & Data
+        ".json", ".yaml", ".yml", ".toml", ".ini", ".xml", ".properties", ".conf", ".config", ".env", ".tf", ".hcl",
+        # Web
+        ".html", ".htm", ".css", ".scss", ".less", ".vue", ".svelte",
+        # Docs
+        ".md", ".rst", ".txt"
+    }
+
+    def __init__(self, policy: PolicyEngine, exclude_patterns: List[str] = None, scan_all_files: bool = False):
         self.policy = policy
         self.exclude_patterns = exclude_patterns or []
+        self.scan_all_files = scan_all_files
         
         # Default excludes to prevent scanning binary/system directories
         default_excludes = [
             ".git", ".svn", ".hg", "__pycache__", 
             ".venv", "venv", "env", "node_modules",
-            "dist", "build", "*.egg-info"
+            "dist", "build", "*.egg-info", "target", "bin", "obj"
         ]
         for exc in default_excludes:
             if exc not in self.exclude_patterns:
@@ -62,6 +75,12 @@ class SecretScanner:
         return False
 
     def _scan_file(self, filepath: str):
+        # 0. Check Extension (unless --all-files is ON)
+        if not self.scan_all_files:
+            _, ext = os.path.splitext(filepath)
+            if ext.lower() not in self.SAFE_EXTENSIONS:
+                return
+
         # 1. Skip if binary
         if self._is_binary(filepath):
             return
