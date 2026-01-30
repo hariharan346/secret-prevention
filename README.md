@@ -1,129 +1,154 @@
-# Security Guardian 🛡️
+Security Guardian
 
-> **The Enterprise-Grade, Cloud-Native Secret Prevention Platform.**
+An Enterprise-Grade, Cloud-Native Secret Prevention Platform
 
-**Security Guardian** is a robust DevSecOps tool designed to preventing credential leakage in large-scale applications. It combines regex-based detection, entropy analysis, and context-aware intelligence to block real threats while minimizing false positives.
+Security Guardian is a DevSecOps tool built to prevent credential leakage in modern applications.
+It combines regex-based detection, entropy analysis, and context-aware intelligence to identify real secrets while minimizing false positives.
 
-Unlike simple scripts, this is a **versioned, distributable platform tool** that enforces "Zero Leakage" policies throughout your CI/CD pipeline.
+Unlike simple scripts, Security Guardian is a versioned, distributable security platform designed to enforce “Zero Secret Leakage” policies across local development, Git workflows, and CI/CD pipelines.
 
----
+Key Features
 
-## 🚀 Key Features
+Intelligent secret detection for API keys, private keys, passwords, and cloud credentials (AWS, GitHub, etc.)
 
-*   **� Intelligent Scanning**: Detects API keys, private keys, passwords, and cloud credentials (AWS, GitHub, etc.).
-*   **🧠 Context-Aware Engine**: Distinguishes between critical leaks (e.g., `prod_db_password`) and test configurations.
-*   **🔢 Entropy Analysis**: Identifies high-randomness strings that standard regex might miss.
-*   **⚓ Git Pre-commit Hook**: Opt-in hook to automatically scan changed files before every commit.
-*   **📐 Strict Hygiene Rules**: Enforces `.env` file best practices to prevent accidental check-ins.
-*   **📦 Python Package**: Easily distributable via `pip` for use in any environment (Windows, Linux, macOS).
+Context-aware engine that distinguishes critical secrets from harmless test values
 
----
+Entropy analysis to detect high-randomness secrets missed by basic regex
 
-## � Installation
+Opt-in Git pre-commit hook to scan changes before every commit
 
-Install the package via pip:
+Git hygiene enforcement for .env files
 
-```bash
-pip install security-guardian
-```
+Python package installable via pip on Windows, Linux, and macOS
 
----
+Installation
 
-## 🛠️ Usage
+Install the package using pip:
+pip install git+https://github.com/hariharan346/security-guardian.git  
 
-### 1. Manual Scan
-Run a scan on your source code or any directory:
+Usage
+Manual Scan
 
-```bash
+Run a scan on your project or any directory:
+
 # Scan current directory
 security-guardian scan .
 
-# Scan specific folder
+# Scan a specific folder
 security-guardian scan src/
 
-# JSON Output (Great for Dashboards)
+# JSON output (useful for dashboards or CI)
 security-guardian scan src/ --format json
-```
 
-### 2. Scanning Strategy 🆕
+Scanning Strategy
 
-**Default Mode (Tracked Only):**
-By default, `security-guardian` scans **only Git-tracked files**. This mirrors how CI/CD pipelines work and ensures we don't scan local junk files.
-- ✅ Scans: `git ls-files`
-- ✅ Filters: Only supports safe source extensions (`.py`, `.js`, `.json`, etc.)
-- 🚫 Ignores: Untracked files, binaries, `.git/`, vendor folders.
+Security Guardian provides three scan modes to balance precision and coverage.
 
-**Include Untracked (`--include-untracked`):**
-If you want to scan local files that haven't been committed yet (but are not ignored), use this flag.
-- ✅ Scans: Tracked files + Untracked files (respects `.gitignore`)
-- ⚠️ Useful for: Checking a new script before `git add`.
+Default Mode (Tracked Files Only – Recommended)
 
-**All-Files Mode (`--all-files`):**
-For deep audits, scan **everything** on disk recursively.
-- ✅ Scans: All files in directory.
-- ✅ Filters: Ignores `.git/` and standard vendor paths.
-- ⚠️ Warning: Slower. Use for deep security audits.
+By default, Security Guardian scans only Git-tracked files.
+This mirrors CI/CD pipelines and pre-commit behavior and avoids scanning local junk files.
 
-```bash
-# Standard Scan (Recommended)
+Scans files returned by git ls-files
+
+Filters supported source extensions (.py, .js, .json, etc.)
+
+Skips untracked files, binaries, .git/, and vendor directories
+
 security-guardian scan .
 
-# Check new uncommitted work
+Include Untracked Files
+
+Scan untracked source files before staging them.
+
+Scans tracked and untracked files
+
+Respects .gitignore
+
+Useful for validating new scripts
+
 security-guardian scan . --include-untracked
 
-# Audit everything
+All-Files Mode
+
+Perform deep security audits by scanning everything on disk.
+
+Scans all readable files
+
+Skips .git/, node_modules/, venv/, dist/, and build/
+
+Slower and noisier; recommended only for audits
+
 security-guardian scan . --all-files
-```
 
-> **Note:** Binary files are always safely skipped in all modes to prevent crashes.
 
-### 3. Install Pre-commit Hook (Recommended)
-You can opt-in to install a local git hook that prevents you from committing secrets. This hook runs ONLY when you verify it's safe.
+Note: Binary and unreadable files are always skipped safely.
 
-```bash
+Install Pre-commit Hook
+
+Enable automatic scanning during git commit:
+
 security-guardian install-hook
-```
 
-**How it works:**
-1.  Verifies you are in a valid Git repository.
-2.  Installs a script in `.git/hooks/pre-commit`.
-3.  **Blocks** any commit containing HIGH severity secrets.
-4.  **Allows** everything else (including Warnings).
 
----
+What this does:
 
-## 📐 Git Hygiene Policy
+Verifies the directory is a Git repository
 
-We enforce strict rules regarding `.env` files to prevent the most common source of leaks. These rules are applied **before** the secret scan.
+Installs a pre-commit hook in .git/hooks/pre-commit
 
-| Condition | Action | Reason |
-| :--- | :--- | :--- |
-| **`.env` not present** | ✅ **PASS** | Clean state. Safe. |
-| **`.env` in `.gitignore`** | ✅ **PASS** | Properly ignored. Safe. |
-| **`.env` NOT in `.gitignore`** | ⚠️ **WARN** | **Risk:** High chance of future accidental commit. |
-| **`.gitignore` missing** | ⚠️ **WARN** | **Risk:** Repository is not configured correctly. |
-| **`.env` TRACKED by git** | ❌ **BLOCK** | **REAL LEAK DETECTED.** Immediate action required. |
+Blocks commits containing high-severity secrets
 
-> **Note:** We do **NOT** scan the contents of `.env` files by default. We assume any tracked `.env` is a security violation regardless of content.
+Allows commits that contain warnings only
 
----
+Hook installation is explicit and opt-in.
 
-## 🛡️ Security Philosophy
+Git Hygiene Policy
 
-We follow a **"Noise-Free"** philosophy suitable for high-velocity engineering teams:
+Security Guardian enforces hygiene rules for .env files before scanning code.
 
-1.  **Block on Real Risk**: Only HIGH severity issues (e.g., AWS Secret Keys, Production Passwords) break the build or block commits.
-2.  **Warn on Hygiene**: Issues like unignored `.env` files generate warnings but do not stop development flow unless they become actual leaks.
-3.  **Local First**: Security starts on the developer's machine via hooks, not just in the CI/CD pipeline.
+Condition	Action	Reason
+.env not present	PASS	Clean state
+.env listed in .gitignore	PASS	Correctly ignored
+.env not listed in .gitignore	WARN	High risk of accidental commit
+.gitignore missing	WARN	Repository hygiene issue
+.env tracked by Git	BLOCK	Real secret leak detected
 
----
+Important:
+Security Guardian does not scan the contents of .env files by default.
+Any tracked .env file is treated as a security violation regardless of content.
 
-## 🔄 Updates
+Security Philosophy
 
-To update to the latest version:
+Security Guardian follows a noise-free security approach:
 
-```bash
+Block only real risks
+High-confidence leaks such as AWS keys or production secrets block commits immediately.
+
+Warn on hygiene issues
+Misconfigurations generate warnings without disrupting development flow.
+
+Local-first security
+Secrets are caught on the developer’s machine before reaching CI/CD or remote repositories.
+
+Updating Security Guardian
+
+Upgrade to the latest version:
+
 pip install --upgrade security-guardian
-```
 
-*Note: You do not need to reinstall the hook after updating the package.*
+
+The pre-commit hook does not need to be reinstalled after upgrading.
+
+Summary
+
+Security Guardian helps teams:
+
+Detect secrets before they reach Git repositories
+
+Enforce secure Git practices
+
+Reduce alert fatigue
+
+Maintain developer productivity
+
