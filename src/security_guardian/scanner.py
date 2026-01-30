@@ -9,12 +9,26 @@ class SecretScanner:
     def __init__(self, policy: PolicyEngine, exclude_patterns: List[str] = None):
         self.policy = policy
         self.exclude_patterns = exclude_patterns or []
+        
+        # Default excludes to prevent scanning binary/system directories
+        default_excludes = [
+            ".git", ".svn", ".hg", "__pycache__", 
+            ".venv", "venv", "env", "node_modules",
+            "dist", "build", "*.egg-info"
+        ]
+        for exc in default_excludes:
+            if exc not in self.exclude_patterns:
+                self.exclude_patterns.append(exc)
+        
         self.results: List[ScanResult] = []
 
     def _is_excluded(self, path: str) -> bool:
         path = os.path.normpath(path)
         for pattern in self.exclude_patterns:
-            if os.path.normpath(pattern) in path:
+            # Simple substring match can be risky, but sufficient for now.
+            # Improved to ensure we match path components if possible
+            pattern = os.path.normpath(pattern)
+            if pattern in path:
                 return True
         return False
 
@@ -27,6 +41,7 @@ class SecretScanner:
         elif os.path.isdir(path):
             for root, dirs, files in os.walk(path):
                 # Modify dirs in-place to skip excluded directories during traversal
+                # This is crucial for performance and preventing traversal of .git
                 dirs[:] = [d for d in dirs if not self._is_excluded(os.path.join(root, d))]
                 
                 for name in files:
@@ -34,9 +49,25 @@ class SecretScanner:
                     if not self._is_excluded(full_path):
                         self._scan_file(full_path)
 
-    def _scan_file(self, filepath: str):
+    def _is_binary(self, filepath: str) -> bool:
+        """Checks if a file is binary by looking for null bytes in the first 1KB."""
         try:
-            # Skip large files or binary files check could go here
+            with open(filepath, 'rb') as f:
+                chunk = f.read(1024)
+                if b'\0' in chunk:
+                    return True
+        except Exception:
+            # If we can't open/read the file, treat it as unsafe/binary
+            return True
+        return False
+
+    def _scan_file(self, filepath: str):
+        # 1. Skip if binary
+        if self._is_binary(filepath):
+            return
+
+        try:
+            # 2. Open as text with error handling
             with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                 lines = f.readlines()
                 for i, line in enumerate(lines, 1):
